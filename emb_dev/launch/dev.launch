@@ -1,0 +1,3 @@
+<launch>
+  <node name="maze_node" pkg="emb_dev" type="maze.py" output="screen"></node>
+</launch>
