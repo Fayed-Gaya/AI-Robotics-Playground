@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
 
         # DEBUG: visulize the maze
-        # visualize_maze(maze)
+        visualize_maze(maze)
         
         # publish the maze
         publish_maze(maze)
