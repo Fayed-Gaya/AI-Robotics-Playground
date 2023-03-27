@@ -21,12 +21,13 @@ source devel/setup.bash
 ```console
 rm -r src
 ```
-2. download this repo
+2. download this repo and rename as src
 ```console
 git clone https://github.com/ai4ce/Embodied_AI_Platform.git
+mv Embodied_AI_Platform/ src/
 
 ```
-3. catkin_make
+3. catkin_make && source devel/setup.bash
 
 
 ## 3. Run Demo
