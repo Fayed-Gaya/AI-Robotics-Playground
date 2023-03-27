@@ -1,3 +1,14 @@
 <launch>
-  <node name="maze_node" pkg="emb_dev" type="maze.py" output="screen"></node>
+
+  <param name="log_level" value="debug" />
+
+  <param name="maze_dimensions" value="[10, 20]" />
+
+  <node name="maze" pkg="emb_dev" type="maze.py" respawn='true' output="screen"></node>
+
+  <node name="maze_visualizer" pkg="emb_dev" type="maze_visualizer.py" respawn='true' output="screen"></node>
+
+  <node name="grid_to_world" pkg="emb_dev" type="grid_to_world.py" respawn='true' output="screen"></node>
+
+
 </launch>

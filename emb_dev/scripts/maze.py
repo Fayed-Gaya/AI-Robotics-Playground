@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
+import json
 from std_msgs.msg import Float32MultiArray
 import numpy as np
 import matplotlib.pyplot as plt
@@ -89,7 +90,7 @@ def get_unvisited_neighbors(row, col, maze):
 
 def publish_maze(maze):
     # initialize the ROS node
-    rospy.init_node('maze_node')
+    rospy.init_node('maze')
 
     # create a publisher for the "maze" topic
     pub = rospy.Publisher('maze_matrix', Float32MultiArray, queue_size=10)
@@ -102,16 +103,24 @@ def publish_maze(maze):
         maze_msg = Float32MultiArray()
         maze_msg.data = maze.flatten().tolist()
         pub.publish(maze_msg)
-        rospy.logdebug('Published maze: %dx%d', maze.shape[0], maze.shape[1])
+        print(f'Published maze: {maze.shape[0]} x {maze.shape[1]}')
         rate.sleep()
 
 
 if __name__ == '__main__':
     try:
         # generate the maze
-        maze = generate_maze(15, 15, max_room_size=3, room_density=0.1)
+        maze_dimensions = rospy.get_param('maze_dimensions')
+        maze_dimensions = json.loads(maze_dimensions)
+        num_rows = int(maze_dimensions[0])
+        num_cols = int(maze_dimensions[1])
+        rospy.logdebug('Creating Maze: %dx%d', num_rows, num_cols)
+        maze = generate_maze(num_rows, num_cols, max_room_size=3, room_density=0.1)
+
+
         # DEBUG: visulize the maze
-        visualize_maze(maze)
+        # visualize_maze(maze)
+        
         # publish the maze
         publish_maze(maze)
     except rospy.ROSInterruptException:
