@@ -1,89 +1,75 @@
 """Implementation of MainGUI Class for Emobided AI Platform"""
 
-import tkinter as tk
-from tkinter import messagebox
-
+from tkinter import Tk, Label, Button, Menu, Canvas, NW
+from cv2 import VideoCapture, imwrite, cvtColor, COLOR_BGR2RGB, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT
+from PIL import Image, ImageTk
+from os import path, getcwd
 
 class MainGUI:
-    def __init__(self) -> None:
+    def __init__(self, video_source=0) -> None:
+
+        # Configure video source
+        self.video_source = video_source
+        self.vid = VideoCapture(self.video_source)
+
         # Configure Root
-        self.root = tk.Tk()
+        self.root = Tk()
         self.configure_root()
 
+        # Configure location and name of saved snaps
+        self.save_file_name = "snapshot.jpg"
+        self.directory = getcwd() + "/UserInterface/Snapshots"
+
         # Configure widgets
-        self.build_label1()
-        self.build_textbox1()
-        self.build_check1()
-        self.build_button1()
-        self.build_menu1()
-        self.build_clear_button1()
+        self.build_video_stream() # Builds the video stream widget
+        self.build_snapshot_button() # Builds a button that takes a snapshot of the current video steam of the 
+        
+        # Launch the GUI
         self.root.mainloop()
+        
 
     def configure_root(self):
         self.root.geometry("500x500")
         self.root.title("Self Drive")
 
-    def build_label1(self):
-        self.label1 = tk.Label(
-            self.root, text="Embodied AI Platform Control", font=("Arial", 18)
-        )
-        self.label1.pack(padx=20, pady=20)
+    def snap(self):
+        # Get a frame from the video source
+        ret, frame = self.vid.read()
 
-    def build_textbox1(self):
-        self.textbox1 = tk.Text(self.root, height=3, font=("arial", 16))
-        self.textbox1.bind(
-            "<KeyPress>", self.shortcut
-        )  # Add "ctrl + enter" shortcut to trigger message
-        self.textbox1.pack(padx=10, pady=10)
-
-    def build_check1(self):
-        self.check1_state = tk.IntVar()
-        self.check1 = tk.Checkbutton(
+        if ret:
+            # Save the frame to disk
+            imwrite(path.join(self.directory, self.save_file_name), frame)
+            print("Snap Taken")
+        
+    def build_snapshot_button(self):
+        self.snap_button = Button(
             self.root,
-            text="Show Messagebox",
+            text="Take Snap",
             font=("Arial", 18),
-            variable=self.check1_state,
+            command=self.snap,
         )
-        self.check1.pack(padx=10, pady=10)
+        self.snap_button.pack(padx=10, pady=10)
 
-    def build_button1(self):
-        self.button1 = tk.Button(
-            self.root,
-            text="Show Message",
-            font=("Arial", 18),
-            command=self.show_message,
-        )
-        self.button1.pack(padx=10, pady=10)
+    def update(self):
+        # Get a frame from the video source
+        ret, frame = self.vid.read()
 
-    def show_message(self):
-        if self.check1_state.get() == 0:
-            print(self.textbox1.get("1.0", tk.END))
-        else:
-            messagebox.showinfo(
-                title="Message", message=self.textbox1.get("1.0", tk.END)
-            )
+        if ret:
+            # Convert the frame from BGR to RGB
+            frame = cvtColor(frame, COLOR_BGR2RGB)
 
-    def shortcut(self, event):
-        if event.state == 4 and event.keysym == "Return":
-            self.show_message()
+            # Display the frame on the Tkinter canvas
+            self.photo = ImageTk.PhotoImage(master=self.canvas, image=Image.fromarray(frame))
+            self.canvas.create_image(0, 0, image=self.photo, anchor=NW)
 
-    def build_menu1(self):
-        self.menubar1 = tk.Menu(self.root)
-        self.filemenu1 = tk.Menu(self.menubar1, tearoff=0)
-        self.filemenu1.add_command(label="Close", command=exit)
+        # Schedule the next update
+        self.root.after(15, self.update)
 
-        self.menubar1.add_cascade(menu=self.filemenu1, label="File")
-        self.root.config(menu=self.menubar1)
-
-    def build_clear_button1(self):
-        self.clear_button1 = tk.Button(
-            self.root, text="Clear", font=("Arial", 18), command=self.clear
-        )
-        self.clear_button1.pack(padx=10, pady=10)
-
-    def clear(self):
-        self.textbox1.delete("1.0", tk.END)
-
+    def build_video_stream(self):
+        # create a canvas object that can display the video stream
+        self.canvas = Canvas(self.root, width=self.vid.get(CAP_PROP_FRAME_WIDTH), height=self.vid.get(CAP_PROP_FRAME_HEIGHT))
+        self.canvas.pack()
+        self.update()
 
 def main():
     """Driver program to test MainGUI class."""
