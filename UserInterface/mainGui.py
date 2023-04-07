@@ -1,9 +1,28 @@
 """Implementation of MainGUI Class for Emobided AI Platform"""
 
-from tkinter import Tk, Label, Button, Menu, Canvas, NW
-from cv2 import VideoCapture, imwrite, cvtColor, COLOR_BGR2RGB, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT
-from PIL import Image, ImageTk
-from os import path, getcwd
+from tkinter import (
+    Tk,
+    Button,
+    Canvas,
+    NW,
+)
+from cv2 import (
+    VideoCapture,
+    imwrite,
+    cvtColor,
+    COLOR_BGR2RGB,
+    CAP_PROP_FRAME_WIDTH,
+    CAP_PROP_FRAME_HEIGHT,
+)
+from PIL import (
+    Image,
+    ImageTk,
+)
+from os import (
+    path,
+    getcwd,
+)
+
 
 class MainGUI:
     def __init__(self, video_source=0) -> None:
@@ -21,12 +40,11 @@ class MainGUI:
         self.directory = getcwd() + "/UserInterface/Snapshots"
 
         # Configure widgets
-        self.build_video_stream() # Builds the video stream widget
-        self.build_snapshot_button() # Builds a button that takes a snapshot of the current video steam of the 
-        
+        self.build_video_stream()  # Builds the video stream widget
+        self.build_snapshot_button()  # Builds a button that takes a snapshot of the current video steam of the
+
         # Launch the GUI
         self.root.mainloop()
-        
 
     def configure_root(self):
         self.root.geometry("500x500")
@@ -40,7 +58,7 @@ class MainGUI:
             # Save the frame to disk
             imwrite(path.join(self.directory, self.save_file_name), frame)
             print("Snap Taken")
-        
+
     def build_snapshot_button(self):
         self.snap_button = Button(
             self.root,
@@ -59,7 +77,9 @@ class MainGUI:
             frame = cvtColor(frame, COLOR_BGR2RGB)
 
             # Display the frame on the Tkinter canvas
-            self.photo = ImageTk.PhotoImage(master=self.canvas, image=Image.fromarray(frame))
+            self.photo = ImageTk.PhotoImage(
+                master=self.canvas, image=Image.fromarray(frame)
+            )
             self.canvas.create_image(0, 0, image=self.photo, anchor=NW)
 
         # Schedule the next update
@@ -67,9 +87,14 @@ class MainGUI:
 
     def build_video_stream(self):
         # create a canvas object that can display the video stream
-        self.canvas = Canvas(self.root, width=self.vid.get(CAP_PROP_FRAME_WIDTH), height=self.vid.get(CAP_PROP_FRAME_HEIGHT))
+        self.canvas = Canvas(
+            self.root,
+            width=self.vid.get(CAP_PROP_FRAME_WIDTH),
+            height=self.vid.get(CAP_PROP_FRAME_HEIGHT),
+        )
         self.canvas.pack()
         self.update()
+
 
 def main():
     """Driver program to test MainGUI class."""
