@@ -177,17 +177,17 @@ class MainGUI:
 
         # Configure arrow key images and add to control canvas
         self.arrow_key_images_unpressed = [ # Unpressed images
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/up_unpressed.jpeg").resize((20, 20))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/right_unpressed.jpeg").resize((20, 20))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/down_unpressed.jpeg").resize((20, 20))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/left_unpressed.jpeg").resize((20, 20)))
+            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/up_unpressed.jpeg").resize((50, 50))),
+            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/right_unpressed.jpeg").resize((50, 50))),
+            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/down_unpressed.jpeg").resize((50, 50))),
+            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/left_unpressed.jpeg").resize((50, 50)))
         ]
 
         self.arrow_key_images_pressed = [ # Pressed images
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/up_pressed.png").resize((20, 20))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/right_pressed.png").resize((20, 20))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/down_pressed.png").resize((20, 20))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/left_pressed.jpeg").resize((20, 20)))
+            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/up_pressed.png").resize((50, 50))),
+            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/right_pressed.png").resize((50, 50))),
+            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/down_pressed.png").resize((50, 50))),
+            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/left_pressed.jpeg").resize((50, 50)))
         ]
         self.image1 = self.control_canvas.create_image(0, 0, image=self.arrow_key_images_unpressed[0], anchor=NW)
         self.image2 = self.control_canvas.create_image(100, 0, image=self.arrow_key_images_unpressed[3], anchor=NW)
