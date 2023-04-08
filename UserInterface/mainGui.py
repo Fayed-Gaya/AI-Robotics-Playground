@@ -1,11 +1,6 @@
 """Implementation of MainGUI Class for Emobided AI Platform"""
 
-from tkinter import (
-    Tk,
-    Button,
-    Canvas,
-    NW,
-)
+from tkinter import Tk, Button, Canvas, NW, Label
 from cv2 import (
     VideoCapture,
     imwrite,
@@ -13,6 +8,7 @@ from cv2 import (
     COLOR_BGR2RGB,
     CAP_PROP_FRAME_WIDTH,
     CAP_PROP_FRAME_HEIGHT,
+    resize,
 )
 from PIL import (
     Image,
@@ -42,6 +38,8 @@ class MainGUI:
         # Configure widgets
         self.build_video_stream()  # Builds the video stream widget
         self.build_snapshot_button()  # Builds a button that takes a snapshot of the current video steam of the
+        self.build_map()  # Builds the map
+        self.build_control_interface()  # Builds the control interface
 
         # Launch the GUI
         self.root.mainloop()
@@ -49,6 +47,12 @@ class MainGUI:
     def configure_root(self):
         self.root.geometry("500x500")
         self.root.title("Self Drive")
+
+        # Configure grid layout
+        self.root.columnconfigure(0, weight=1)
+        self.root.columnconfigure(1, weight=1)
+        self.root.rowconfigure(0, weight=1)
+        self.root.rowconfigure(1, weight=1)
 
     def snap(self):
         # Get a frame from the video source
@@ -66,7 +70,7 @@ class MainGUI:
             font=("Arial", 18),
             command=self.snap,
         )
-        self.snap_button.pack(padx=10, pady=10)
+        self.snap_button.grid(row=1, column=0, padx=10, pady=10, sticky="s")
 
     def update(self):
         # Get a frame from the video source
@@ -75,6 +79,11 @@ class MainGUI:
         if ret:
             # Convert the frame from BGR to RGB
             frame = cvtColor(frame, COLOR_BGR2RGB)
+
+            # Resize the frame to match the size of the canvas
+            canvas_width = self.canvas.winfo_width()
+            canvas_height = self.canvas.winfo_height()
+            frame = resize(frame, (canvas_width, canvas_height))
 
             # Display the frame on the Tkinter canvas
             self.photo = ImageTk.PhotoImage(
@@ -89,11 +98,23 @@ class MainGUI:
         # create a canvas object that can display the video stream
         self.canvas = Canvas(
             self.root,
-            width=self.vid.get(CAP_PROP_FRAME_WIDTH),
-            height=self.vid.get(CAP_PROP_FRAME_HEIGHT),
+            width=500,
+            height=500,
+            # width=self.vid.get(CAP_PROP_FRAME_WIDTH),
+            # height=self.vid.get(CAP_PROP_FRAME_HEIGHT),
         )
-        self.canvas.pack()
+        self.canvas.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         self.update()
+
+    def build_map(self):
+        self.map = ImageTk.PhotoImage(Image.open("UserInterface/map_placeholder.png"))
+        self.map_label = Label(self.root, image=self.map)
+        self.map_label.grid(row=0, column=1)
+
+    def build_control_interface(self):
+        self.controls = ImageTk.PhotoImage(Image.open("UserInterface/controller.jpeg"))
+        self.controls_label = Label(self.root, image=self.controls)
+        self.controls_label.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
 
 def main():
