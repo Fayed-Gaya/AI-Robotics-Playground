@@ -62,7 +62,7 @@ class MainGUI:
         self.root.rowconfigure(1, weight=1)
 
         # Configure controls key binding
-        self.root.bind('<KeyPress>', self.on_key_event)
+        self.root.bind("<KeyPress>", self.on_key_event)
         self.root.bind("<KeyRelease>", self.on_key_event)
 
     def snap(self):
@@ -118,82 +118,131 @@ class MainGUI:
         self.update()
 
     def build_map(self):
-        self.map = ImageTk.PhotoImage(Image.open("UserInterface/map_placeholder.png"))
-        self.map_label = Label(self.root, image=self.map)
+        self.map = ImageTk.PhotoImage(
+            Image.open("UserInterface/map_placeholder.png").resize((200, 200))
+        )
+        self.map_label = Label(
+            self.root,
+            text="Map Placeholer",
+            fg="black",
+            compound="top",
+            image=self.map,
+            padx=10,
+            pady=10,
+        )
         self.map_label.grid(row=0, column=1)
 
     def switch_image(self, cell, new_image):
         self.control_canvas.itemconfigure(cell, image=new_image)
-    
+
     def on_key_event(self, event):
         key = event.char  # Stores the character pressed
-        key_press_to_image = { # Maps key presses to  pressed images
-            'w': self.arrow_key_images_pressed[0],
-            'a': self.arrow_key_images_pressed[3],
-            's': self.arrow_key_images_pressed[2],
-            'd': self.arrow_key_images_pressed[1]} 
-        
+        key_press_to_image = {  # Maps key presses to  pressed images
+            "w": self.arrow_key_images_pressed[0],
+            "a": self.arrow_key_images_pressed[3],
+            "s": self.arrow_key_images_pressed[2],
+            "d": self.arrow_key_images_pressed[1],
+        }
+
         key_release_to_image = {  # Maps pressed images to their unpressed images
-            'w': self.arrow_key_images_unpressed[0],
-            'a': self.arrow_key_images_unpressed[3],
-            's': self.arrow_key_images_unpressed[2],
-            'd': self.arrow_key_images_unpressed[1]
-            }
-        
-        if key in key_press_to_image: # Relevant key detected
+            "w": self.arrow_key_images_unpressed[0],
+            "a": self.arrow_key_images_unpressed[3],
+            "s": self.arrow_key_images_unpressed[2],
+            "d": self.arrow_key_images_unpressed[1],
+        }
+
+        if key in key_press_to_image:  # Relevant key detected
             new_image = key_press_to_image[key]
-            if event.type == '2':
-                if key == 'w':
+            if event.type == "2":
+                if key == "w":
                     self.switch_image(self.image1, new_image)
-                elif key == 'a':
+                elif key == "a":
                     self.switch_image(self.image2, new_image)
-                elif key == 's':
+                elif key == "s":
                     self.switch_image(self.image3, new_image)
-                elif key == 'd':
+                elif key == "d":
                     self.switch_image(self.image4, new_image)
                 print(f"You pressed {event.char}")
-            elif event.type == '3':  # Key release
+            elif event.type == "3":  # Key release
                 # original_image = cell_to_image[event.widget.find_withtag(CURRENT)[0]]
                 old_image = key_release_to_image[key]
-                if key == 'w':
+                if key == "w":
                     self.switch_image(self.image1, old_image)
-                elif key == 'a':
+                elif key == "a":
                     self.switch_image(self.image2, old_image)
-                elif key == 's':
+                elif key == "s":
                     self.switch_image(self.image3, old_image)
-                elif key == 'd':
+                elif key == "d":
                     self.switch_image(self.image4, old_image)
                 print(f"You released {event.char}")
-        
-                    
+
     def build_control_interface(self):
         # Create control canvas
         self.control_canvas = Canvas(
             self.root,
-            width=200,
+            width=300,
             height=200,
         )
         self.control_canvas.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
         # Configure arrow key images and add to control canvas
-        self.arrow_key_images_unpressed = [ # Unpressed images
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/up_unpressed.jpeg").resize((50, 50))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/right_unpressed.jpeg").resize((50, 50))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/down_unpressed.jpeg").resize((50, 50))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/left_unpressed.jpeg").resize((50, 50)))
+        self.arrow_key_images_unpressed = [  # Unpressed images
+            ImageTk.PhotoImage(
+                Image.open("UserInterface/arrowKeyImages/up_unpressed.jpeg").resize(
+                    (50, 50)
+                )
+            ),
+            ImageTk.PhotoImage(
+                Image.open("UserInterface/arrowKeyImages/right_unpressed.jpeg").resize(
+                    (50, 50)
+                )
+            ),
+            ImageTk.PhotoImage(
+                Image.open("UserInterface/arrowKeyImages/down_unpressed.jpeg").resize(
+                    (50, 50)
+                )
+            ),
+            ImageTk.PhotoImage(
+                Image.open("UserInterface/arrowKeyImages/left_unpressed.jpeg").resize(
+                    (50, 50)
+                )
+            ),
         ]
 
-        self.arrow_key_images_pressed = [ # Pressed images
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/up_pressed.png").resize((50, 50))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/right_pressed.png").resize((50, 50))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/down_pressed.png").resize((50, 50))),
-            ImageTk.PhotoImage(Image.open("UserInterface/arrowKeyImages/left_pressed.jpeg").resize((50, 50)))
+        self.arrow_key_images_pressed = [  # Pressed images
+            ImageTk.PhotoImage(
+                Image.open("UserInterface/arrowKeyImages/up_pressed.png").resize(
+                    (50, 50)
+                )
+            ),
+            ImageTk.PhotoImage(
+                Image.open("UserInterface/arrowKeyImages/right_pressed.png").resize(
+                    (50, 50)
+                )
+            ),
+            ImageTk.PhotoImage(
+                Image.open("UserInterface/arrowKeyImages/down_pressed.png").resize(
+                    (50, 50)
+                )
+            ),
+            ImageTk.PhotoImage(
+                Image.open("UserInterface/arrowKeyImages/left_pressed.jpeg").resize(
+                    (50, 50)
+                )
+            ),
         ]
-        self.image1 = self.control_canvas.create_image(0, 0, image=self.arrow_key_images_unpressed[0], anchor=NW)
-        self.image2 = self.control_canvas.create_image(100, 0, image=self.arrow_key_images_unpressed[3], anchor=NW)
-        self.image3 = self.control_canvas.create_image(0, 100, image=self.arrow_key_images_unpressed[2], anchor=NW)
-        self.image4 = self.control_canvas.create_image(100, 100, image=self.arrow_key_images_unpressed[1], anchor=NW)
-
+        self.image1 = self.control_canvas.create_image(
+            100, 0, image=self.arrow_key_images_unpressed[0], anchor=NW
+        )  # Up key
+        self.image2 = self.control_canvas.create_image(
+            0, 100, image=self.arrow_key_images_unpressed[3], anchor=NW
+        )  # Left key
+        self.image3 = self.control_canvas.create_image(
+            100, 100, image=self.arrow_key_images_unpressed[2], anchor=NW
+        )  # Down key
+        self.image4 = self.control_canvas.create_image(
+            200, 100, image=self.arrow_key_images_unpressed[1], anchor=NW
+        )  # Right Key
 
         # Placeholder image representing controls
         # self.controls = ImageTk.PhotoImage(Image.open("UserInterface/controller.jpeg"))
