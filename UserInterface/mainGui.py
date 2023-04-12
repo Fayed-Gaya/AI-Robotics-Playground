@@ -16,6 +16,8 @@ from cv2 import (
     CAP_PROP_FRAME_WIDTH,
     CAP_PROP_FRAME_HEIGHT,
     resize,
+    imshow,
+    waitKey,
 )
 from PIL import (
     Image,
@@ -26,21 +28,24 @@ from os import (
     getcwd,
 )
 
+from ImageSubscriber import ImageSubscriber
+import rospy
+
 
 class MainGUI:
-    def __init__(self, video_source=0) -> None:
+    def __init__(self) -> None:
 
-        # Configure video source
-        self.video_source = video_source
-        self.vid = VideoCapture(self.video_source)
+        # Configure Raspberry Pi Camera subscriber
+        rospy.init_node("image_subscriber")
+        self.sub = ImageSubscriber("/raspicam_node/image/compressed")
 
-        # Configure Root
+        # Configure root window
         self.root = Tk()
         self.configure_root()
 
         # Configure location and name of saved snaps
         self.save_file_name = "snapshot.jpg"
-        self.directory = getcwd() + "/UserInterface/Snapshots"
+        self.directory = getcwd() + "/devel/UserInterface/Snapshots"
 
         # Configure widgets
         self.build_video_stream()  # Builds the video stream widget
@@ -52,6 +57,10 @@ class MainGUI:
         self.root.mainloop()
 
     def configure_root(self):
+        """
+        Sets the configuration of the root window using a grid layout.
+        Sets key bindings.
+        """
         self.root.geometry("500x500")
         self.root.title("Self Drive")
 
@@ -66,13 +75,14 @@ class MainGUI:
         self.root.bind("<KeyRelease>", self.on_key_event)
 
     def snap(self):
+        #  REWORK THIS TO PULL A FRAME FROM THE SUB NOT A VIDEO SOURCE
         # Get a frame from the video source
         ret, frame = self.vid.read()
 
         if ret:
             # Save the frame to disk
             imwrite(path.join(self.directory, self.save_file_name), frame)
-            print("Snap Taken")
+            print("Snapshot Taken")
 
     def build_snapshot_button(self):
         self.snap_button = Button(
@@ -84,42 +94,49 @@ class MainGUI:
         self.snap_button.grid(row=1, column=0, padx=10, pady=10, sticky="s")
 
     def update(self):
-        # Get a frame from the video source
-        ret, frame = self.vid.read()
+        """
+        Pulls frames from the video stream subscriber node.
+        Resizes the frames and converts them into a Tkinter friendly format.
+        Writes the converted frames to a canvas.
+        """
 
-        if ret:
-            # Convert the frame from BGR to RGB
-            frame = cvtColor(frame, COLOR_BGR2RGB)
+        frame = self.sub.get_frame()
 
+        if frame is not None:
             # Resize the frame to match the size of the canvas
             canvas_width = self.canvas.winfo_width()
             canvas_height = self.canvas.winfo_height()
             frame = resize(frame, (canvas_width, canvas_height))
 
-            # Display the frame on the Tkinter canvas
+            # Convert the image using PIL and write it to a member variable.
             self.photo = ImageTk.PhotoImage(
                 master=self.canvas, image=Image.fromarray(frame)
             )
+
+            # Pain the image to the canvas that contains it.
             self.canvas.create_image(0, 0, image=self.photo, anchor=NW)
 
-        # Schedule the next update
+        # Continuously updates the image painted to the canvas.
         self.root.after(15, self.update)
 
     def build_video_stream(self):
-        # create a canvas object that can display the video stream
+        """
+        Creates a canvas that holds the video stream from the onboard camera. Calls the function that updates the video stream.
+        """
         self.canvas = Canvas(
             self.root,
             width=500,
             height=500,
-            # width=self.vid.get(CAP_PROP_FRAME_WIDTH),
-            # height=self.vid.get(CAP_PROP_FRAME_HEIGHT),
         )
         self.canvas.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         self.update()
 
     def build_map(self):
+        """
+        Creates an image that serves as the map place holder.
+        """
         self.map = ImageTk.PhotoImage(
-            Image.open("UserInterface/map_placeholder.png").resize((200, 200))
+            Image.open("devel/UserInterface/map_placeholder.png").resize((200, 200))
         )
         self.map_label = Label(
             self.root,
@@ -136,6 +153,12 @@ class MainGUI:
         self.control_canvas.itemconfigure(cell, image=new_image)
 
     def on_key_event(self, event):
+        """
+        Processes key events.
+        wasd -> up, left, down, right.
+        Swaps key images in response to key entry and release.
+        """
+
         key = event.char  # Stores the character pressed
         key_press_to_image = {  # Maps key presses to  pressed images
             "w": self.arrow_key_images_pressed[0],
@@ -177,6 +200,9 @@ class MainGUI:
                 print(f"You released {event.char}")
 
     def build_control_interface(self):
+        """
+        Creates the canvas that houses the responsive images describing controls.
+        """
         # Create control canvas
         self.control_canvas = Canvas(
             self.root,
@@ -188,47 +214,47 @@ class MainGUI:
         # Configure arrow key images and add to control canvas
         self.arrow_key_images_unpressed = [  # Unpressed images
             ImageTk.PhotoImage(
-                Image.open("UserInterface/arrowKeyImages/up_unpressed.jpeg").resize(
-                    (50, 50)
-                )
+                Image.open(
+                    "devel/UserInterface/arrowKeyImages/up_unpressed.jpeg"
+                ).resize((50, 50))
             ),
             ImageTk.PhotoImage(
-                Image.open("UserInterface/arrowKeyImages/right_unpressed.jpeg").resize(
-                    (50, 50)
-                )
+                Image.open(
+                    "devel/UserInterface/arrowKeyImages/right_unpressed.jpeg"
+                ).resize((50, 50))
             ),
             ImageTk.PhotoImage(
-                Image.open("UserInterface/arrowKeyImages/down_unpressed.jpeg").resize(
-                    (50, 50)
-                )
+                Image.open(
+                    "devel/UserInterface/arrowKeyImages/down_unpressed.jpeg"
+                ).resize((50, 50))
             ),
             ImageTk.PhotoImage(
-                Image.open("UserInterface/arrowKeyImages/left_unpressed.jpeg").resize(
-                    (50, 50)
-                )
+                Image.open(
+                    "devel/UserInterface/arrowKeyImages/left_unpressed.jpeg"
+                ).resize((50, 50))
             ),
         ]
 
         self.arrow_key_images_pressed = [  # Pressed images
             ImageTk.PhotoImage(
-                Image.open("UserInterface/arrowKeyImages/up_pressed.png").resize(
+                Image.open("devel/UserInterface/arrowKeyImages/up_pressed.png").resize(
                     (50, 50)
                 )
             ),
             ImageTk.PhotoImage(
-                Image.open("UserInterface/arrowKeyImages/right_pressed.png").resize(
-                    (50, 50)
-                )
+                Image.open(
+                    "devel/UserInterface/arrowKeyImages/right_pressed.png"
+                ).resize((50, 50))
             ),
             ImageTk.PhotoImage(
-                Image.open("UserInterface/arrowKeyImages/down_pressed.png").resize(
-                    (50, 50)
-                )
+                Image.open(
+                    "devel/UserInterface/arrowKeyImages/down_pressed.png"
+                ).resize((50, 50))
             ),
             ImageTk.PhotoImage(
-                Image.open("UserInterface/arrowKeyImages/left_pressed.jpeg").resize(
-                    (50, 50)
-                )
+                Image.open(
+                    "devel/UserInterface/arrowKeyImages/left_pressed.jpeg"
+                ).resize((50, 50))
             ),
         ]
         self.image1 = self.control_canvas.create_image(
@@ -245,7 +271,7 @@ class MainGUI:
         )  # Right Key
 
         # Placeholder image representing controls
-        # self.controls = ImageTk.PhotoImage(Image.open("UserInterface/controller.jpeg"))
+        # self.controls = ImageTk.PhotoImage(Image.open("devel/UserInterface/controller.jpeg"))
         # self.controls_label = Label(self.root, image=self.controls)
         # self.controls_label.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
