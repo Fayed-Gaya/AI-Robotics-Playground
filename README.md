@@ -46,6 +46,7 @@ Publish as occupancy grid ...
 # GUI
 
 The graphical user interface serves as the portal from which users interact with the platform in both simulated and real world environments.
+
 ![GUI Demo](Images/GUIDemo.gif)
 
 ![GUI Overview](Images/GUIBreakDown.png)
