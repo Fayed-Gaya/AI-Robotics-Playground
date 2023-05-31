@@ -34,12 +34,11 @@ In the real world the location of the turtle bot is calculated using an overhead
 ![Overhead Camera Perspective](Images/OverheadCameraPerspective.png)
 *The view of the real world maze from the overhead camera.*
 
-![Overhead Camera Demo](Images/Images/overheadCameraFeed.gif)
+![Overhead Camera Demo](Images/overheadCameraFeed.gif)
 *Overhead camera providing turtlebot localization.*
 
 In the real world maze, unique designs are added to maze walls to aid the user in navigation.
-![Overhead Camera Perspective](Images/overheadCameraFeed.gif)
-*Real world maze walls with unique patterns.*
+
 
 ## 4. Controls
 The first iteration of the platform is built using a Turtlebot Burger, a Raspberry pi 4 and a Raspberry pi camera. The controls are processed using ROS which is mapped to a user key board. Key entry is visually indicated to the user by the arrow keys in the GUI changing based on whether a key is pressed or not.
