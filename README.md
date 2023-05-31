@@ -50,9 +50,6 @@ The graphical user interface serves as the portal from which users interact with
 GUI Overview:
 [![GUI Demo](Images/GUIDemo.gif)]
 
-[![GUI Video](Images/GUISim.png)](Images/GUI Gazebo Demo.mp4)
-*An overview of the graphical user interface.*
-
 ![GUI Overview](Images/GUIBreakDown.png)
 *GUI Components labelled.*
 ## 1. Video Feed
