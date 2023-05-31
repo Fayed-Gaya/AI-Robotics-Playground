@@ -47,6 +47,8 @@ Publish as occupancy grid ...
 
 The graphical user interface serves as the portal from which users interact with the platform in both simulated and real world environments.
 
+GUI Overview:
+https://github.com/Fayed-Gaya/AI-Robotics-Playground/blob/main/Images/GUI%20Gazebo%20Demo.mp4
 
 [![GUI Video](Images/GUISim.png)](Images/GUI Gazebo Demo.mp4)
 *An overview of the graphical user interface.*
