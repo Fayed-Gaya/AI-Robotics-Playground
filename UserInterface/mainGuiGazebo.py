@@ -6,18 +6,10 @@ from tkinter import (
     Canvas,
     NW,
     Label,
-    Text,
 )
 from cv2 import (
-    VideoCapture,
     imwrite,
-    cvtColor,
-    COLOR_BGR2RGB,
-    CAP_PROP_FRAME_WIDTH,
-    CAP_PROP_FRAME_HEIGHT,
     resize,
-    imshow,
-    waitKey,
 )
 from PIL import (
     Image,
@@ -29,42 +21,42 @@ from os import (
 )
 
 from ImageSubscriber import ImageSubscriber
-import rospy
+from LocationSubscriber import LocationSubscriber
+import teleop_keyboard
 
+from map import MapWidget
 
 class MainGUI:
-    def __init__(self) -> None:
+    def __init__(self, video_source=0) -> None:
+        teleop_keyboard.init()
 
-        # Configure Raspberry Pi Camera subscriber
-        rospy.init_node("image_subscriber")
-        self.sub = ImageSubscriber("/raspicam_node/image/compressed")
+        # Configure video turtlebot video stream
+        self.sub = ImageSubscriber("/turtlebot3_burger_camera/image_raw/compressed")
 
-        # Configure root window
+        # Configure ground truth location
+        self.location_sub = LocationSubscriber("/tf")
+
+        # Configure Root
         self.root = Tk()
         self.configure_root()
 
         # Configure location and name of saved snaps
         self.save_file_name = "snapshot.jpg"
-        self.directory = getcwd() + "/devel/UserInterface/Snapshots"
+        self.directory = getcwd() + "devel/UserInterface/Snapshots"
 
         # Configure widgets
         self.build_video_stream()  # Builds the video stream widget
         self.build_snapshot_button()  # Builds a button that takes a snapshot of the current video steam of the
         self.build_map()  # Builds the map
-        self.build_control_interface()  # Builds the control interface
+        self.build_control_interface()  # Builds the control interfacerow=5, col=10)
 
-        # Launch the GUI
-        self.root.mainloop()
 
     def configure_root(self):
-        """
-        Sets the configuration of the root window using a grid layout.
-        Sets key bindings.
-        """
+        # Set root dimensions, title
         self.root.geometry("500x500")
         self.root.title("Self Drive")
 
-        # Configure grid layout
+        # Configure root layout
         self.root.columnconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=1)
         self.root.rowconfigure(0, weight=1)
@@ -74,17 +66,40 @@ class MainGUI:
         self.root.bind("<KeyPress>", self.on_key_event)
         self.root.bind("<KeyRelease>", self.on_key_event)
 
+    def collect_ground_truth(self):
+        return self.location_sub.get_location()
+    
     def snap(self):
-        #  REWORK THIS TO PULL A FRAME FROM THE SUB NOT A VIDEO SOURCE
+        """
+        Reads a frame from the video source and saves it to disk.
+        """
         # Get a frame from the video source
-        ret, frame = self.vid.read()
+        frame = self.sub.get_frame()
 
-        if ret:
+        if frame is not None:
             # Save the frame to disk
-            imwrite(path.join(self.directory, self.save_file_name), frame)
-            print("Snapshot Taken")
+            img = Image.fromarray(frame)
+            img.save("/home/ai4ce/catkin_ws/devel/UserInterface/Snapshots/snapshot.jpg")
+            
+            # Collect ground truth location
+            gt_col, gt_row = self.collect_ground_truth()
+            print("gt:", gt_col, gt_row)
+            col, row = int(gt_col / 0.3), int(gt_row / 0.3)
+            print("cr", col, row)
+
+            # Add image to map and link to corresponding square
+            # Temp hardcoding of row and col
+            self.map.snap(row, col, "devel/UserInterface/Snapshots/snapshot.jpg")
+
+            print("Snap Taken")
+        else:
+            print("Attempted to snap frame: No frame detected.")
 
     def build_snapshot_button(self):
+        """
+        Creates a button that when pressed will save the current frame of the video feed.
+        """
+
         self.snap_button = Button(
             self.root,
             text="Take Snap",
@@ -95,11 +110,10 @@ class MainGUI:
 
     def update(self):
         """
-        Pulls frames from the video stream subscriber node.
-        Resizes the frames and converts them into a Tkinter friendly format.
-        Writes the converted frames to a canvas.
+        Continuously updates the video stream frames.
         """
 
+        # Get a frame from the video source
         frame = self.sub.get_frame()
 
         if frame is not None:
@@ -108,21 +122,16 @@ class MainGUI:
             canvas_height = self.canvas.winfo_height()
             frame = resize(frame, (canvas_width, canvas_height))
 
-            # Convert the image using PIL and write it to a member variable.
-            self.photo = ImageTk.PhotoImage(
-                master=self.canvas, image=Image.fromarray(frame)
-            )
-
-            # Pain the image to the canvas that contains it.
+            # Convert the frame into a Tkinter friendly format using PIL
+            self.photo = ImageTk.PhotoImage(master=self.canvas, image=Image.fromarray(frame))
+            # Paint the image in the video stream canvas
             self.canvas.create_image(0, 0, image=self.photo, anchor=NW)
 
-        # Continuously updates the image painted to the canvas.
+        # Schedule the next update
         self.root.after(15, self.update)
 
     def build_video_stream(self):
-        """
-        Creates a canvas that holds the video stream from the onboard camera. Calls the function that updates the video stream.
-        """
+        # create a canvas object that can display the video stream
         self.canvas = Canvas(
             self.root,
             width=500,
@@ -133,33 +142,17 @@ class MainGUI:
 
     def build_map(self):
         """
-        Creates an image that serves as the map place holder.
+        Creates a 2D map object that represents the robot's position in the maze.
         """
-        self.map = ImageTk.PhotoImage(
-            Image.open("devel/UserInterface/map_placeholder.png").resize((200, 200))
-        )
-        self.map_label = Label(
-            self.root,
-            text="Map Placeholer",
-            fg="black",
-            compound="top",
-            image=self.map,
-            padx=10,
-            pady=10,
-        )
-        self.map_label.grid(row=0, column=1)
+        self.map = MapWidget(self.root, width=600, height=300)
+        self.map.grid(row=0, column=1, padx=10, pady=10)
 
     def switch_image(self, cell, new_image):
         self.control_canvas.itemconfigure(cell, image=new_image)
 
     def on_key_event(self, event):
-        """
-        Processes key events.
-        wasd -> up, left, down, right.
-        Swaps key images in response to key entry and release.
-        """
-
-        key = event.char  # Stores the character pressed
+        print("Key event detected.", event.type, "Key Symbol:", event.keysym)
+        key = event.keysym  # Stores the character pressed
         key_press_to_image = {  # Maps key presses to  pressed images
             "w": self.arrow_key_images_pressed[0],
             "a": self.arrow_key_images_pressed[3],
@@ -174,7 +167,7 @@ class MainGUI:
             "d": self.arrow_key_images_unpressed[1],
         }
 
-        if key in key_press_to_image:  # Relevant key detected
+        if key in key_press_to_image:  # Relevant key detected          
             new_image = key_press_to_image[key]
             if event.type == "2":
                 if key == "w":
@@ -185,9 +178,8 @@ class MainGUI:
                     self.switch_image(self.image3, new_image)
                 elif key == "d":
                     self.switch_image(self.image4, new_image)
-                print(f"You pressed {event.char}")
-            elif event.type == "3":  # Key release
-                # original_image = cell_to_image[event.widget.find_withtag(CURRENT)[0]]
+                print(f"You pressed {event.keysym}")
+            if event.type == "3":  # Key release
                 old_image = key_release_to_image[key]
                 if key == "w":
                     self.switch_image(self.image1, old_image)
@@ -197,12 +189,10 @@ class MainGUI:
                     self.switch_image(self.image3, old_image)
                 elif key == "d":
                     self.switch_image(self.image4, old_image)
-                print(f"You released {event.char}")
+                print(f"You released {event.keysym}")
+            teleop_keyboard.process_key(event.char)
 
     def build_control_interface(self):
-        """
-        Creates the canvas that houses the responsive images describing controls.
-        """
         # Create control canvas
         self.control_canvas = Canvas(
             self.root,
@@ -214,24 +204,24 @@ class MainGUI:
         # Configure arrow key images and add to control canvas
         self.arrow_key_images_unpressed = [  # Unpressed images
             ImageTk.PhotoImage(
-                Image.open(
-                    "devel/UserInterface/arrowKeyImages/up_unpressed.jpeg"
-                ).resize((50, 50))
+                Image.open("devel/UserInterface/arrowKeyImages/up_unpressed.jpeg").resize(
+                    (50, 50)
+                )
             ),
             ImageTk.PhotoImage(
-                Image.open(
-                    "devel/UserInterface/arrowKeyImages/right_unpressed.jpeg"
-                ).resize((50, 50))
+                Image.open("devel/UserInterface/arrowKeyImages/right_unpressed.jpeg").resize(
+                    (50, 50)
+                )
             ),
             ImageTk.PhotoImage(
-                Image.open(
-                    "devel/UserInterface/arrowKeyImages/down_unpressed.jpeg"
-                ).resize((50, 50))
+                Image.open("devel/UserInterface/arrowKeyImages/down_unpressed.jpeg").resize(
+                    (50, 50)
+                )
             ),
             ImageTk.PhotoImage(
-                Image.open(
-                    "devel/UserInterface/arrowKeyImages/left_unpressed.jpeg"
-                ).resize((50, 50))
+                Image.open("devel/UserInterface/arrowKeyImages/left_unpressed.jpeg").resize(
+                    (50, 50)
+                )
             ),
         ]
 
@@ -242,19 +232,18 @@ class MainGUI:
                 )
             ),
             ImageTk.PhotoImage(
-                Image.open(
-                    "devel/UserInterface/arrowKeyImages/right_pressed.png"
-                ).resize((50, 50))
+                Image.open("devel/UserInterface/arrowKeyImages/right_pressed.png").resize(
+                    (50, 50)
+                )
+            ),
+            ImageTk.PhotoImage(Image.open("devel/UserInterface/arrowKeyImages/down_pressed.png").resize(
+                    (50, 50)
+                )
             ),
             ImageTk.PhotoImage(
-                Image.open(
-                    "devel/UserInterface/arrowKeyImages/down_pressed.png"
-                ).resize((50, 50))
-            ),
-            ImageTk.PhotoImage(
-                Image.open(
-                    "devel/UserInterface/arrowKeyImages/left_pressed.jpeg"
-                ).resize((50, 50))
+                Image.open("devel/UserInterface/arrowKeyImages/left_pressed.jpeg").resize(
+                    (50, 50)
+                )
             ),
         ]
         self.image1 = self.control_canvas.create_image(
@@ -270,15 +259,19 @@ class MainGUI:
             200, 100, image=self.arrow_key_images_unpressed[1], anchor=NW
         )  # Right Key
 
-        # Placeholder image representing controls
-        # self.controls = ImageTk.PhotoImage(Image.open("devel/UserInterface/controller.jpeg"))
-        # self.controls_label = Label(self.root, image=self.controls)
-        # self.controls_label.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
-
+    def __del__(self):
+        pass
+        teleop_keyboard.cleanup()
 
 def main():
     """Driver program to test MainGUI class."""
-    MainGUI()
+    gui = None
+    try:
+        gui = MainGUI()
+        gui.root.mainloop()
+    finally:
+        if gui:
+            del gui
 
 
 if __name__ == "__main__":
