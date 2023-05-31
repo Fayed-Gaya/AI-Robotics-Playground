@@ -78,9 +78,9 @@ In the real world the location of the turtle bot is calculated using an overhead
 
 ![Overhead Camera Demo](Images/Images/overheadCameraFeed.gif)
 *Overhead camera providing turtlebot localization.*
-
+<!-- 
 In the real world maze, unique designs are added to maze walls to aid the user in navigation.
-![Overhead Camera Perspective](Images/overheadCameraFeed.gif)
+![Overhead Camera Perspective](Images/overheadCameraFeed.gif) -->
 
 
 ## 4. Controls
