@@ -1,9 +1,9 @@
-# AI Robotics Platform
-The AI Robotics platform is a turtleBot based robotics platform designed to host robot orienteering games for experimentation and education purposes. The platform utilizes ROS Gazebo for creating a simulation environment in addition to working in conjunction with mazes built in the real world. The playground introduce 2D topological mapping and Visual Place Recognition (VPR) concepts to players while enhancing accessibility to robotics education by leveraging exisitng low-cost systems.
+# AI Robotics Playground
+The AI Robotics Playground is a turtleBot based robotics Playground designed to host robot orienteering games for experimentation and education purposes. The platform utilizes ROS Gazebo for creating a simulation environment in addition to working in conjunction with mazes built in the real world. The playground introduce 2D topological mapping and Visual Place Recognition (VPR) concepts to players while enhancing accessibility to robotics education by leveraging exisitng low-cost systems.
 
 # GUI
 
-The graphical user interface serves as the portal from which users interact with the platform in both simulated and real world environments.
+The graphical user interface serves as the portal from which users interact with the Playground in both simulated and real world environments.
 
 ![GUI Demo](Images/GUIDemo.gif)
 
